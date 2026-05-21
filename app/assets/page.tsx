@@ -42,18 +42,34 @@ export default function AssetsPage() {
   async function handleSave() {
     if (!bankName || !balance || saving) return
     setSaving(true)
-    const { error } = modal.editing
-      ? await supabase.from('bank_balances').update({ bank_name: bankName, balance: parseInt(balance, 10), updated_date: updatedDate }).eq('id', modal.editing.id)
-      : await supabase.from('bank_balances').insert({ bank_name: bankName, balance: parseInt(balance, 10), updated_date: updatedDate })
+    try {
+      const payload = { bank_name: bankName, balance: Number(balance), updated_date: updatedDate }
+      if (modal.editing) {
+        await fetch('/api/db/bank_balances', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: modal.editing.id, ...payload }),
+        }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      } else {
+        await fetch('/api/db/bank_balances', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      }
+      closeModal()
+      await fetchBalances()
+    } catch (err) { alert(String(err)) }
     setSaving(false)
-    if (error) { alert('保存に失敗しました: ' + error.message); return }
-    closeModal()
-    await fetchBalances()
   }
 
   async function handleDelete(id: string) {
-    await supabase.from('bank_balances').delete().eq('id', id)
-    fetchBalances()
+    await fetch('/api/db/bank_balances', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    await fetchBalances()
   }
 
   const total = balances.reduce((sum, b) => sum + b.balance, 0)

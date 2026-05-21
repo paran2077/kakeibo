@@ -30,15 +30,15 @@ export default function AddTransactionModal({ onClose, onSave }: Props) {
   async function handleSave() {
     if (!amount || !category || loading) return
     setLoading(true)
-    await supabase.from('transactions').insert({
-      type,
-      amount: parseInt(amount, 10),
-      category,
-      note: note.trim() || null,
-      date,
-    })
+    try {
+      await fetch('/api/db/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, amount: Number(amount), category, note: note.trim() || null, date }),
+      }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      onSave()
+    } catch (err) { alert(String(err)) }
     setLoading(false)
-    onSave()
   }
 
   return (

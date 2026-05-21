@@ -30,24 +30,25 @@ export default function SalaryPage() {
   async function handleSave() {
     if (!amount || saving) return
     setSaving(true)
-    const { error } = await supabase.from('transactions').insert({
-      type: 'income',
-      amount: parseInt(amount, 10),
-      category: '給与',
-      note: note.trim() || null,
-      date,
-    })
+    try {
+      await fetch('/api/db/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'income', amount: Number(amount), category: '給与', note: note.trim() || null, date }),
+      }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      setAmount(''); setNote(''); setIsModalOpen(false)
+      await fetchSalaries()
+    } catch (err) { alert(String(err)) }
     setSaving(false)
-    if (error) { alert('保存に失敗しました: ' + error.message); return }
-    setAmount('')
-    setNote('')
-    setIsModalOpen(false)
-    await fetchSalaries()
   }
 
   async function handleDelete(id: string) {
-    await supabase.from('transactions').delete().eq('id', id)
-    fetchSalaries()
+    await fetch('/api/db/transactions', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    await fetchSalaries()
   }
 
   const total = salaries.reduce((sum, s) => sum + s.amount, 0)

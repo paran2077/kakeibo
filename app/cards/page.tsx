@@ -34,23 +34,25 @@ export default function CardsPage() {
   async function handleSave() {
     if (!cardName || !amount || saving) return
     setSaving(true)
-    const { error } = await supabase.from('credit_card_usage').insert({
-      card_name: cardName,
-      year,
-      month,
-      amount: parseInt(amount, 10),
-      note: note.trim() || null,
-    })
+    try {
+      await fetch('/api/db/credit_card_usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card_name: cardName, year, month, amount: Number(amount), note: note.trim() || null }),
+      }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      setCardName(''); setAmount(''); setNote(''); setIsModalOpen(false)
+      await fetchUsages()
+    } catch (err) { alert(String(err)) }
     setSaving(false)
-    if (error) { alert('保存に失敗しました: ' + error.message); return }
-    setCardName(''); setAmount(''); setNote('')
-    setIsModalOpen(false)
-    await fetchUsages()
   }
 
   async function handleDelete(id: string) {
-    await supabase.from('credit_card_usage').delete().eq('id', id)
-    fetchUsages()
+    await fetch('/api/db/credit_card_usage', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    await fetchUsages()
   }
 
   const total = usages.reduce((sum, u) => sum + u.amount, 0)
