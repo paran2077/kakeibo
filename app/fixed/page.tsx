@@ -41,18 +41,61 @@ export default function FixedPage() {
   async function handleSave() {
     if (!name || !amount || saving) return
     setSaving(true)
-    const { error } = modal.editing
-      ? await supabase.from('fixed_expenses').update({ name, amount: parseInt(amount, 10), category }).eq('id', modal.editing.id)
-      : await supabase.from('fixed_expenses').insert({ name, amount: parseInt(amount, 10), category })
+    try {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      const payload = { name: name.trim(), amount: Number(amount), category }
+
+      let res: Response
+      if (modal.editing) {
+        res = await fetch(`${url}/rest/v1/fixed_expenses?id=eq.${modal.editing.id}`, {
+          method: 'PATCH',
+          headers: new Headers([
+            ['apikey', key],
+            ['Authorization', `Bearer ${key}`],
+            ['Content-Type', 'application/json'],
+            ['Prefer', 'return=minimal'],
+          ]),
+          body: JSON.stringify(payload),
+        })
+      } else {
+        res = await fetch(`${url}/rest/v1/fixed_expenses`, {
+          method: 'POST',
+          headers: new Headers([
+            ['apikey', key],
+            ['Authorization', `Bearer ${key}`],
+            ['Content-Type', 'application/json'],
+            ['Prefer', 'return=minimal'],
+          ]),
+          body: JSON.stringify(payload),
+        })
+      }
+
+      if (!res.ok) {
+        const text = await res.text()
+        alert(`エラー (${res.status}): ${text}`)
+        setSaving(false)
+        return
+      }
+      closeModal()
+      await fetchItems()
+    } catch (err) {
+      alert(`例外: ${String(err)}`)
+    }
     setSaving(false)
-    if (error) { alert(`エラー詳細:\nメッセージ: ${error.message}\nコード: ${error.code}\nヒント: ${error.hint}\n詳細: ${error.details}`); return }
-    closeModal()
-    await fetchItems()
   }
 
   async function handleDelete(id: string) {
-    await supabase.from('fixed_expenses').delete().eq('id', id)
-    fetchItems()
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    await fetch(`${url}/rest/v1/fixed_expenses?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: new Headers([
+        ['apikey', key],
+        ['Authorization', `Bearer ${key}`],
+      ]),
+    })
+    await fetchItems()
   }
 
   const total = items.reduce((sum, i) => sum + i.amount, 0)
