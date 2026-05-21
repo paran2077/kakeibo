@@ -47,14 +47,12 @@ export default function AssetsPage() {
       if (modal.editing) {
         await fetch('/api/db/bank_balances', {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: modal.editing.id, ...payload }),
+          body: new Blob([JSON.stringify({ id: modal.editing.id, ...payload })], { type: 'application/json' }),
         }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
       } else {
         await fetch('/api/db/bank_balances', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: new Blob([JSON.stringify(payload)], { type: 'application/json' }),
         }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
       }
       closeModal()
@@ -66,8 +64,7 @@ export default function AssetsPage() {
   async function handleDelete(id: string) {
     await fetch('/api/db/bank_balances', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: new Blob([JSON.stringify({ id })], { type: 'application/json' }),
     })
     await fetchBalances()
   }

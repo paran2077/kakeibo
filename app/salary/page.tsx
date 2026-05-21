@@ -33,8 +33,7 @@ export default function SalaryPage() {
     try {
       await fetch('/api/db/transactions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'income', amount: Number(amount), category: '給与', note: note.trim() || null, date }),
+        body: new Blob([JSON.stringify({ type: 'income', amount: Number(amount), category: '給与', note: note.trim() || null, date })], { type: 'application/json' }),
       }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
       setAmount(''); setNote(''); setIsModalOpen(false)
       await fetchSalaries()
@@ -45,8 +44,7 @@ export default function SalaryPage() {
   async function handleDelete(id: string) {
     await fetch('/api/db/transactions', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: new Blob([JSON.stringify({ id })], { type: 'application/json' }),
     })
     await fetchSalaries()
   }

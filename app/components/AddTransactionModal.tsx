@@ -33,8 +33,7 @@ export default function AddTransactionModal({ onClose, onSave }: Props) {
     try {
       await fetch('/api/db/transactions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, amount: Number(amount), category, note: note.trim() || null, date }),
+        body: new Blob([JSON.stringify({ type, amount: Number(amount), category, note: note.trim() || null, date })], { type: 'application/json' }),
       }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
       onSave()
     } catch (err) { alert(String(err)) }

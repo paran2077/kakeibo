@@ -9,14 +9,11 @@ const CATEGORIES = ['家賃', '保険', 'サブスク', '通信費', '光熱費'
 type ModalState = { open: boolean; editing: FixedExpense | null }
 
 async function dbPost(table: string, method: string, data: object) {
-  const res = await fetch(`/api/db/${table}`, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
+  const res = await fetch('/api/db/' + table, { method, body: blob })
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-    throw new Error(err.error || `HTTP ${res.status}`)
+    const err = await res.json().catch(() => ({ error: 'HTTP ' + res.status }))
+    throw new Error(err.error || 'HTTP ' + res.status)
   }
 }
 

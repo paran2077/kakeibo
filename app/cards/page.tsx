@@ -37,8 +37,7 @@ export default function CardsPage() {
     try {
       await fetch('/api/db/credit_card_usage', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_name: cardName, year, month, amount: Number(amount), note: note.trim() || null }),
+        body: new Blob([JSON.stringify({ card_name: cardName, year, month, amount: Number(amount), note: note.trim() || null })], { type: 'application/json' }),
       }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
       setCardName(''); setAmount(''); setNote(''); setIsModalOpen(false)
       await fetchUsages()
@@ -49,8 +48,7 @@ export default function CardsPage() {
   async function handleDelete(id: string) {
     await fetch('/api/db/credit_card_usage', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: new Blob([JSON.stringify({ id })], { type: 'application/json' }),
     })
     await fetchUsages()
   }
