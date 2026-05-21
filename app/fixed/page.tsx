@@ -46,30 +46,20 @@ export default function FixedPage() {
       const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       const payload = { name: name.trim(), amount: Number(amount), category }
 
-      let res: Response
-      if (modal.editing) {
-        res = await fetch(`${url}/rest/v1/fixed_expenses?id=eq.${modal.editing.id}`, {
-          method: 'PATCH',
-          headers: new Headers([
-            ['apikey', key],
-            ['Authorization', `Bearer ${key}`],
-            ['Content-Type', 'application/json'],
-            ['Prefer', 'return=minimal'],
-          ]),
-          body: JSON.stringify(payload),
-        })
-      } else {
-        res = await fetch(`${url}/rest/v1/fixed_expenses`, {
-          method: 'POST',
-          headers: new Headers([
-            ['apikey', key],
-            ['Authorization', `Bearer ${key}`],
-            ['Content-Type', 'application/json'],
-            ['Prefer', 'return=minimal'],
-          ]),
-          body: JSON.stringify(payload),
-        })
+      const headers = {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
       }
+      const fetchUrl = modal.editing
+        ? `${url}/rest/v1/fixed_expenses?id=eq.${modal.editing.id}`
+        : `${url}/rest/v1/fixed_expenses`
+      const res = await fetch(fetchUrl, {
+        method: modal.editing ? 'PATCH' : 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      })
 
       if (!res.ok) {
         const text = await res.text()
@@ -90,10 +80,10 @@ export default function FixedPage() {
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     await fetch(`${url}/rest/v1/fixed_expenses?id=eq.${id}`, {
       method: 'DELETE',
-      headers: new Headers([
-        ['apikey', key],
-        ['Authorization', `Bearer ${key}`],
-      ]),
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+      },
     })
     await fetchItems()
   }
