@@ -119,7 +119,7 @@ export default function Home() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(v: number) => `¥${v.toLocaleString()}`}
+                    formatter={(v) => typeof v === 'number' ? `¥${v.toLocaleString()}` : String(v)}
                     contentStyle={{ background: '#1e1b4b', border: 'none', borderRadius: 12, color: '#fff', fontSize: 12 }}
                   />
                 </PieChart>
