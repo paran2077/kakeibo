@@ -34,7 +34,7 @@ export default function CardsPage() {
   async function handleSave() {
     if (!cardName || !amount || saving) return
     setSaving(true)
-    await supabase.from('credit_card_usage').insert({
+    const { error } = await supabase.from('credit_card_usage').insert({
       card_name: cardName,
       year,
       month,
@@ -42,9 +42,10 @@ export default function CardsPage() {
       note: note.trim() || null,
     })
     setSaving(false)
+    if (error) { alert('保存に失敗しました: ' + error.message); return }
     setCardName(''); setAmount(''); setNote('')
     setIsModalOpen(false)
-    fetchUsages()
+    await fetchUsages()
   }
 
   async function handleDelete(id: string) {

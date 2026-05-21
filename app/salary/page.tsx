@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase, Transaction } from '@/lib/supabase'
 import { Plus, X } from 'lucide-react'
 
@@ -13,11 +13,7 @@ export default function SalaryPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    fetchSalaries()
-  }, [])
-
-  async function fetchSalaries() {
+  const fetchSalaries = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase
       .from('transactions')
@@ -27,12 +23,14 @@ export default function SalaryPage() {
       .order('date', { ascending: false })
     setSalaries(data || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => { fetchSalaries() }, [fetchSalaries])
 
   async function handleSave() {
     if (!amount || saving) return
     setSaving(true)
-    await supabase.from('transactions').insert({
+    const { error } = await supabase.from('transactions').insert({
       type: 'income',
       amount: parseInt(amount, 10),
       category: '給与',
@@ -40,10 +38,11 @@ export default function SalaryPage() {
       date,
     })
     setSaving(false)
+    if (error) { alert('保存に失敗しました: ' + error.message); return }
     setAmount('')
     setNote('')
     setIsModalOpen(false)
-    fetchSalaries()
+    await fetchSalaries()
   }
 
   async function handleDelete(id: string) {

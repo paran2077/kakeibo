@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase, FixedExpense } from '@/lib/supabase'
 import { Plus, X, Pencil } from 'lucide-react'
 
@@ -17,14 +17,14 @@ export default function FixedPage() {
   const [category, setCategory] = useState('その他')
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { fetchItems() }, [])
-
-  async function fetchItems() {
+  const fetchItems = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase.from('fixed_expenses').select('*').order('created_at', { ascending: true })
     setItems(data || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => { fetchItems() }, [fetchItems])
 
   function openAdd() {
     setName(''); setAmount(''); setCategory('その他')
@@ -41,14 +41,13 @@ export default function FixedPage() {
   async function handleSave() {
     if (!name || !amount || saving) return
     setSaving(true)
-    if (modal.editing) {
-      await supabase.from('fixed_expenses').update({ name, amount: parseInt(amount, 10), category }).eq('id', modal.editing.id)
-    } else {
-      await supabase.from('fixed_expenses').insert({ name, amount: parseInt(amount, 10), category })
-    }
+    const { error } = modal.editing
+      ? await supabase.from('fixed_expenses').update({ name, amount: parseInt(amount, 10), category }).eq('id', modal.editing.id)
+      : await supabase.from('fixed_expenses').insert({ name, amount: parseInt(amount, 10), category })
     setSaving(false)
+    if (error) { alert('保存に失敗しました: ' + error.message); return }
     closeModal()
-    fetchItems()
+    await fetchItems()
   }
 
   async function handleDelete(id: string) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase, BankBalance } from '@/lib/supabase'
 import { Plus, X, Pencil } from 'lucide-react'
 
@@ -15,9 +15,7 @@ export default function AssetsPage() {
   const [updatedDate, setUpdatedDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { fetchBalances() }, [])
-
-  async function fetchBalances() {
+  const fetchBalances = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase
       .from('bank_balances')
@@ -25,7 +23,9 @@ export default function AssetsPage() {
       .order('created_at', { ascending: true })
     setBalances(data || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => { fetchBalances() }, [fetchBalances])
 
   function openAdd() {
     setBankName(''); setBalance(''); setUpdatedDate(new Date().toISOString().split('T')[0])
@@ -42,22 +42,13 @@ export default function AssetsPage() {
   async function handleSave() {
     if (!bankName || !balance || saving) return
     setSaving(true)
-    if (modal.editing) {
-      await supabase.from('bank_balances').update({
-        bank_name: bankName,
-        balance: parseInt(balance, 10),
-        updated_date: updatedDate,
-      }).eq('id', modal.editing.id)
-    } else {
-      await supabase.from('bank_balances').insert({
-        bank_name: bankName,
-        balance: parseInt(balance, 10),
-        updated_date: updatedDate,
-      })
-    }
+    const { error } = modal.editing
+      ? await supabase.from('bank_balances').update({ bank_name: bankName, balance: parseInt(balance, 10), updated_date: updatedDate }).eq('id', modal.editing.id)
+      : await supabase.from('bank_balances').insert({ bank_name: bankName, balance: parseInt(balance, 10), updated_date: updatedDate })
     setSaving(false)
+    if (error) { alert('保存に失敗しました: ' + error.message); return }
     closeModal()
-    fetchBalances()
+    await fetchBalances()
   }
 
   async function handleDelete(id: string) {
