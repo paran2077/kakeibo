@@ -45,7 +45,7 @@ export default function FixedPage() {
       ? await supabase.from('fixed_expenses').update({ name, amount: parseInt(amount, 10), category }).eq('id', modal.editing.id)
       : await supabase.from('fixed_expenses').insert({ name, amount: parseInt(amount, 10), category })
     setSaving(false)
-    if (error) { alert('保存に失敗しました: ' + error.message); return }
+    if (error) { alert(`エラー詳細:\nメッセージ: ${error.message}\nコード: ${error.code}\nヒント: ${error.hint}\n詳細: ${error.details}`); return }
     closeModal()
     await fetchItems()
   }
