@@ -14,3 +14,30 @@ export type Transaction = {
   date: string
   created_at: string
 }
+
+export type FixedExpense = {
+  id: string
+  name: string
+  amount: number
+  category: string
+  active: boolean
+  created_at: string
+}
+
+export type CreditCardUsage = {
+  id: string
+  card_name: string
+  year: number
+  month: number
+  amount: number
+  note: string | null
+  created_at: string
+}
+
+export type BankBalance = {
+  id: string
+  bank_name: string
+  balance: number
+  updated_date: string
+  created_at: string
+}

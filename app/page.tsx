@@ -66,7 +66,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
-      <div className="max-w-md mx-auto px-4 pb-28">
+      <div className="max-w-md mx-auto px-4 pb-36">
 
         {/* ヘッダー */}
         <div className="pt-12 pb-6 text-center">
@@ -166,7 +166,7 @@ export default function Home() {
       {/* 追加ボタン */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-8 right-6 w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full shadow-xl shadow-purple-500/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
+        className="fixed bottom-20 right-6 w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full shadow-xl shadow-purple-500/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
         aria-label="追加"
       >
         <Plus size={28} className="text-white" strokeWidth={2.5} />
