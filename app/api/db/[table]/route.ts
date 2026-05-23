@@ -9,10 +9,8 @@ function getSupabase() {
 }
 
 async function parseBody(request: NextRequest) {
-  const ct = request.headers.get('content-type') || ''
-  if (ct.includes('application/json')) return request.json()
-  const fd = await request.formData()
-  return JSON.parse(fd.get('json') as string)
+  const text = await request.text()
+  return JSON.parse(text)
 }
 
 export async function POST(

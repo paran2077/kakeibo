@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, BankBalance } from '@/lib/supabase'
 import { Plus, X, Pencil } from 'lucide-react'
+import { dbPost } from '@/lib/dbPost'
 
 type ModalState = { open: boolean; editing: BankBalance | null }
 
@@ -45,15 +46,9 @@ export default function AssetsPage() {
     try {
       const payload = { bank_name: bankName, balance: Number(balance), updated_date: updatedDate }
       if (modal.editing) {
-        await fetch('/api/db/bank_balances', {
-          method: 'PATCH',
-          body: new URLSearchParams({ json: JSON.stringify({ id: modal.editing.id, ...payload }) }),
-        }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+        await dbPost('bank_balances', 'PATCH', { id: modal.editing.id, ...payload })
       } else {
-        await fetch('/api/db/bank_balances', {
-          method: 'POST',
-          body: new URLSearchParams({ json: JSON.stringify(payload) }),
-        }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+        await dbPost('bank_balances', 'POST', payload)
       }
       closeModal()
       await fetchBalances()
@@ -62,10 +57,7 @@ export default function AssetsPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch('/api/db/bank_balances', {
-      method: 'DELETE',
-      body: new URLSearchParams({ json: JSON.stringify({ id }) }),
-    })
+    await dbPost('bank_balances', 'DELETE', { id })
     await fetchBalances()
   }
 

@@ -3,19 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, FixedExpense } from '@/lib/supabase'
 import { Plus, X, Pencil } from 'lucide-react'
+import { dbPost } from '@/lib/dbPost'
 
 const CATEGORIES = ['家賃', '保険', 'サブスク', '通信費', '光熱費', 'ローン', 'その他']
 
 type ModalState = { open: boolean; editing: FixedExpense | null }
-
-async function dbPost(table: string, method: string, data: object) {
-  const body = new URLSearchParams({ json: JSON.stringify(data) })
-  const res = await fetch('/api/db/' + table, { method, body })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'HTTP ' + res.status }))
-    throw new Error(err.error || 'HTTP ' + res.status)
-  }
-}
 
 export default function FixedPage() {
   const [items, setItems] = useState<FixedExpense[]>([])

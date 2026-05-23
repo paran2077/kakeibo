@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, CreditCardUsage } from '@/lib/supabase'
 import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { dbPost } from '@/lib/dbPost'
 
 export default function CardsPage() {
   const [usages, setUsages] = useState<CreditCardUsage[]>([])
@@ -35,10 +36,7 @@ export default function CardsPage() {
     if (!cardName || !amount || saving) return
     setSaving(true)
     try {
-      await fetch('/api/db/credit_card_usage', {
-        method: 'POST',
-        body: new URLSearchParams({ json: JSON.stringify({ card_name: cardName, year, month, amount: Number(amount), note: note.trim() || null }) }),
-      }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      await dbPost('credit_card_usage', 'POST', { card_name: cardName, year, month, amount: Number(amount), note: note.trim() || null })
       setCardName(''); setAmount(''); setNote(''); setIsModalOpen(false)
       await fetchUsages()
     } catch (err) { alert(String(err)) }
@@ -46,10 +44,7 @@ export default function CardsPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch('/api/db/credit_card_usage', {
-      method: 'DELETE',
-      body: new URLSearchParams({ json: JSON.stringify({ id }) }),
-    })
+    await dbPost('credit_card_usage', 'DELETE', { id })
     await fetchUsages()
   }
 

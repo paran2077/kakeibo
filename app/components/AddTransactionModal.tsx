@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { X } from 'lucide-react'
+import { dbPost } from '@/lib/dbPost'
 
 const EXPENSE_CATEGORIES = ['食費', '交通費', '娯楽', '日用品', '医療', '光熱費', '通信費', 'その他']
 const INCOME_CATEGORIES = ['給与', '副業', 'その他']
@@ -31,10 +31,7 @@ export default function AddTransactionModal({ onClose, onSave }: Props) {
     if (!amount || !category || loading) return
     setLoading(true)
     try {
-      await fetch('/api/db/transactions', {
-        method: 'POST',
-        body: new URLSearchParams({ json: JSON.stringify({ type, amount: Number(amount), category, note: note.trim() || null, date }) }),
-      }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      await dbPost('transactions', 'POST', { type, amount: Number(amount), category, note: note.trim() || null, date })
       onSave()
     } catch (err) { alert(String(err)) }
     setLoading(false)

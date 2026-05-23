@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, Transaction } from '@/lib/supabase'
 import { Plus, X } from 'lucide-react'
+import { dbPost } from '@/lib/dbPost'
 
 export default function SalaryPage() {
   const [salaries, setSalaries] = useState<Transaction[]>([])
@@ -31,10 +32,7 @@ export default function SalaryPage() {
     if (!amount || saving) return
     setSaving(true)
     try {
-      await fetch('/api/db/transactions', {
-        method: 'POST',
-        body: new URLSearchParams({ json: JSON.stringify({ type: 'income', amount: Number(amount), category: '給与', note: note.trim() || null, date }) }),
-      }).then(async r => { if (!r.ok) throw new Error((await r.json()).error) })
+      await dbPost('transactions', 'POST', { type: 'income', amount: Number(amount), category: '給与', note: note.trim() || null, date })
       setAmount(''); setNote(''); setIsModalOpen(false)
       await fetchSalaries()
     } catch (err) { alert(String(err)) }
@@ -42,10 +40,7 @@ export default function SalaryPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch('/api/db/transactions', {
-      method: 'DELETE',
-      body: new URLSearchParams({ json: JSON.stringify({ id }) }),
-    })
+    await dbPost('transactions', 'DELETE', { id })
     await fetchSalaries()
   }
 
