@@ -4,7 +4,8 @@ function safeJson(data: object): string {
 }
 
 export async function dbPost(table: string, method: string, data: object): Promise<void> {
-  const res = await fetch('/api/db/' + table, { method, body: safeJson(data) })
+  const url = '/api/db/' + table + '?_m=' + method + '&_d=' + encodeURIComponent(safeJson(data))
+  const res = await fetch(url)
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'HTTP ' + res.status }))
     throw new Error(err.error || 'HTTP ' + res.status)

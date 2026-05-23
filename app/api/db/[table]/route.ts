@@ -8,40 +8,27 @@ function getSupabase() {
   )
 }
 
-async function parseBody(request: NextRequest) {
-  const text = await request.text()
-  return JSON.parse(text)
-}
-
-export async function POST(
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ table: string }> }
 ) {
   const { table } = await params
-  const body = await parseBody(request)
-  const { error } = await getSupabase().from(table).insert(body)
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  return new NextResponse(null, { status: 204 })
-}
+  const { searchParams } = request.nextUrl
+  const method = searchParams.get('_m') || 'POST'
+  const body = JSON.parse(searchParams.get('_d') || '{}')
+  const supabase = getSupabase()
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string }> }
-) {
-  const { table } = await params
-  const { id, ...body } = await parseBody(request)
-  const { error } = await getSupabase().from(table).update(body).eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  return new NextResponse(null, { status: 204 })
-}
+  if (method === 'POST') {
+    const { error } = await supabase.from(table).insert(body)
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  } else if (method === 'PATCH') {
+    const { id, ...rest } = body
+    const { error } = await supabase.from(table).update(rest).eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  } else if (method === 'DELETE') {
+    const { error } = await supabase.from(table).delete().eq('id', body.id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ table: string }> }
-) {
-  const { table } = await params
-  const { id } = await parseBody(request)
-  const { error } = await getSupabase().from(table).delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return new NextResponse(null, { status: 204 })
 }
